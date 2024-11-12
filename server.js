@@ -1,4 +1,4 @@
-// Import necessary modules
+// Import modules
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -7,7 +7,7 @@ const path = require('path');
 const HTML_DIR = path.join(__dirname, 'html');
 const ITEMS_FILE = path.join(__dirname, 'items.json');
 
-// Helper to read/write items.json
+// Helper to r/w items.json
 const readItems = () => {
   if (!fs.existsSync(ITEMS_FILE)) return [];
   const data = fs.readFileSync(ITEMS_FILE);
@@ -18,7 +18,7 @@ const writeItems = (items) => {
   fs.writeFileSync(ITEMS_FILE, JSON.stringify(items, null, 2));
 };
 
-// Web Server
+// Server
 const webServer = http.createServer((req, res) => {
   const filePath = path.join(HTML_DIR, req.url);
 
@@ -33,12 +33,13 @@ const webServer = http.createServer((req, res) => {
   });
 });
 
-// Inventory API Server
+// API
 const apiServer = http.createServer((req, res) => {
   const items = readItems();
 
   if (req.url.startsWith('/api/items')) {
-    // Create item (POST /api/items)
+    
+    // Create post & api items 
     if (req.method === 'POST' && req.url === '/api/items') {
       let body = '';
       req.on('data', (chunk) => {
@@ -47,7 +48,9 @@ const apiServer = http.createServer((req, res) => {
       req.on('end', () => {
         try {
           const newItem = JSON.parse(body);
-          newItem.id = new Date().getTime(); // Simple unique ID
+          newItem.id = new Date().getTime(); 
+          
+    // Simple unique ID
           items.push(newItem);
           writeItems(items);
           res.writeHead(201, { 'Content-Type': 'application/json' });
@@ -58,12 +61,12 @@ const apiServer = http.createServer((req, res) => {
         }
       });
     }
-    // Get all items (GET /api/items)
+    // Get all api items
     else if (req.method === 'GET' && req.url === '/api/items') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ success: true, data: items }));
     }
-    // Get one item (GET /api/items/:id)
+    // Get one api item with id
     else if (req.method === 'GET' && req.url.match(/^\/api\/items\/\d+$/)) {
       const id = parseInt(req.url.split('/')[3]);
       const item = items.find((i) => i.id === id);
@@ -75,7 +78,7 @@ const apiServer = http.createServer((req, res) => {
         res.end(JSON.stringify({ success: false, error: 'Item not found' }));
       }
     }
-    // Update item (PUT /api/items/:id)
+    // Update api item
     else if (req.method === 'PUT' && req.url.match(/^\/api\/items\/\d+$/)) {
       const id = parseInt(req.url.split('/')[3]);
       let body = '';
@@ -101,7 +104,8 @@ const apiServer = http.createServer((req, res) => {
         }
       });
     }
-    // Delete item (DELETE /api/items/:id)
+      
+    // Delete api item 
     else if (req.method === 'DELETE' && req.url.match(/^\/api\/items\/\d+$/)) {
       const id = parseInt(req.url.split('/')[3]);
       const itemIndex = items.findIndex((i) => i.id === id);
@@ -115,6 +119,7 @@ const apiServer = http.createServer((req, res) => {
         res.end(JSON.stringify({ success: false, error: 'Item not found' }));
       }
     }
+      
     // Invalid API Endpoint
     else {
       res.writeHead(404, { 'Content-Type': 'application/json' });
@@ -126,6 +131,6 @@ const apiServer = http.createServer((req, res) => {
   }
 });
 
-// Start both servers
+// Start both web and api servers
 webServer.listen(3000, () => console.log('Web Server listening on port 3000...'));
 apiServer.listen(4000, () => console.log('API Server listening on port 4000...'));
